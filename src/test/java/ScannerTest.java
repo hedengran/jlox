@@ -30,7 +30,6 @@ class ScannerTest {
         );
     }
 
-
     @Test
     void shouldTokenizeIdentifiers() {
         String source = """
@@ -156,6 +155,35 @@ class ScannerTest {
                 List.of(
                         new Token(TokenType.NUMBER, "123", 123d, 2),
                         new Token(TokenType.EOF, "", null, 5)
+                ),
+                tokens
+        );
+    }
+
+    @Test
+    void shouldIgnoreMultilineComments() {
+        String source = """
+                // this is a comment
+                123 /* this is a multiline comment
+                ignoredIdentifier inside comment
+                // a comment inside a comment
+                end of comment */ aToken // ignored
+                /*
+                 /*
+                 still in a comment
+                 */
+                */
+                """;
+
+        List<Token> tokens = new Scanner(source).scanTokens();
+
+        Assertions.assertEquals(
+                List.of(
+                        new Token(TokenType.NUMBER, "123", 123d, 2),
+                        new Token(TokenType.IDENTIFIER, "aToken", null, 5),
+                        new Token(TokenType.STAR, "*", null, 10),
+                        new Token(TokenType.SLASH, "/", null, 10),
+                        new Token(TokenType.EOF, "", null, 11)
                 ),
                 tokens
         );

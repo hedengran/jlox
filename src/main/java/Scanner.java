@@ -68,6 +68,8 @@ public class Scanner {
             case '/' -> {
                 if (match('/')) {
                     while (peek() != '\n' && !isAtEnd()) advance();
+                } else if (match('*')) {
+                    multilineString();
                 } else {
                     addToken(TokenType.SLASH);
                 }
@@ -91,6 +93,20 @@ public class Scanner {
                 }
             }
         }
+    }
+
+    private void multilineString() {
+        while (!(peek() == '*' && peekNext() == '/') && !isAtEnd()) {
+            if (peek() == '\n') line++;
+            advance();
+
+            if (isAtEnd()) {
+                Lox.error(line, "Unterminated comment.");
+                return;
+            }
+        }
+        // This is closing */.
+        advance(2);
     }
 
     private void identifier() {
@@ -174,6 +190,11 @@ public class Scanner {
 
     private char advance() {
         return source.charAt(current++);
+    }
+
+    private char advance(int steps) {
+        for (int i = 0; i < steps - 1; i++) advance();
+        return advance();
     }
 
     private void addToken(TokenType type) {
